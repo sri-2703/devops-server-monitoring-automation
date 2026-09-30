@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>DevOps Server Monitor</title>
+
+<style>
+
+.test-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    background: #dc2626;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+
+.test-btn:hover {
+    opacity: 0.85;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    background:
+        #0f172a;
+
+    color:
+        #e2e8f0;
+}
+
+.container {
+
+    max-width: 1200px;
+
+    margin: auto;
+
+    padding: 30px;
+}
+
+header {
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+    margin-bottom: 25px;
+}
+
+h1 {
+
+    margin: 0;
+
+    font-size: 30px;
+}
+
+.subtitle {
+
+    color:
+        #94a3b8;
+
+    margin-top: 5px;
+}
+
+button {
+
+    border: none;
+
+    padding:
+        11px 18px;
+
+    border-radius:
+        8px;
+
+    cursor:
+        pointer;
+
+    background:
+        #2563eb;
+
+    color:
+        white;
+
+    font-weight:
+        bold;
+}
+
+button:hover {
+
+    background:
+        #1d4ed8;
+}
+
+.grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap:
+        16px;
+}
+
+.card {
+
+    background:
+        #1e293b;
+
+    padding:
+        20px;
+
+    border-radius:
+        12px;
+
+    border:
+        1px solid #334155;
+
+    margin-bottom:
+        20px;
+}
+
+.metric-title {
+
+    color:
+        #94a3b8;
+}
+
+.value {
+
+    font-size:
+        30px;
+
+    font-weight:
+        bold;
+
+    margin-top:
+        10px;
+}
+
+.ok {
+
+    color:
+        #4ade80;
+}
+
+.bad {
+
+    color:
+        #f87171;
+}
+
+.warning {
+
+    color:
+        #facc15;
+}
+
+.chart-container {
+
+    width:
+        100%;
+
+    overflow-x:
+        auto;
+}
+
+canvas {
+
+    width:
+        100%;
+
+    height:
+        280px;
+
+    background:
+        #020617;
+
+    border-radius:
+        10px;
+}
+
+.alert {
+
+    padding:
+        12px;
+
+    margin:
+        8px 0;
+
+    border-radius:
+        8px;
+
+    background:
+        #450a0a;
+
+    border-left:
+        4px solid #ef4444;
+}
+
+.no-alert {
+
+    color:
+        #4ade80;
+}
+
+pre {
+
+    background:
+        #020617;
+
+    padding:
+        15px;
+
+    border-radius:
+        8px;
+
+    overflow-x:
+        auto;
+
+    white-space:
+        pre-wrap;
+}
+
+table {
+
+    width:
+        100%;
+
+    border-collapse:
+        collapse;
+}
+
+th,
+td {
+
+    padding:
+        10px;
+
+    text-align:
+        left;
+
+    border-bottom:
+        1px solid #334155;
+}
+
+th {
+
+    color:
+        #94a3b8;
+}
+
+@media(max-width:800px) {
+
+    .grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+}
+
+@media(max-width:500px) {
+
+    .grid {
+
+        grid-template-columns:
+            1fr;
+    }
+
+    header {
+
+        flex-direction:
+            column;
+
+        align-items:
+            flex-start;
+
+        gap:
+            15px;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+
+<div>
+
+<h1>
+DevOps Server Monitor
+</h1>
+
+<div class="subtitle">
+
+Linux • Networking • Logs • Automation • Docker
+
+</div>
+
+</div>
+
+<button onclick="loadDashboard()">
+
+Refresh
+
+</button>
+
+</header>
+
+
+<!-- Metrics -->
+
+<div class="grid">
+
+<div class="card">
+
+<div class="metric-title">
+CPU Usage
+</div>
+
+<div
+id="cpu"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="metric-title">
+Memory Usage
+</div>
+
+<div
+id="memory"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="metric-title">
+Disk Usage
+</div>
+
+<div
+id="disk"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="metric-title">
+Network
+</div>
+
+<div
+id="network"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- System -->
+
+<div class="card">
+
+<h2>
+System Information
+</h2>
+
+<p id="system">
+Loading...
+</p>
+
+<p id="updated">
+</p>
+
+</div>
+
+
+<!-- Chart -->
+
+<div class="card">
+
+<h2>
+Resource Usage History
+</h2>
+
+<div class="chart-container">
+
+<canvas
+id="chart"
+width="1000"
+height="280">
+</canvas>
+
+</div>
+
+</div>
+
+
+<!-- Alerts -->
+
+<div class="card">
+
+<h2>🚨 Active Alerts</h2>
+
+<button onclick="generateTestAlerts()" class="test-btn">
+    🚨 Generate Test Alerts
+</button>
+
+<div id="alerts">
+    Loading...
+</div>
+
+</div>
+
+</div>
+
+
+<!-- Logs -->
+
+<div class="card">
+
+<h2>
+Log Analysis
+</h2>
+
+<p id="logs">
+Loading...
+</p>
+
+<pre id="issues">
+Loading...
+</pre>
+
+</div>
+
+
+<!-- Alert History -->
+
+<div class="card">
+
+<h2>
+Alert History
+</h2>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Time</th>
+
+<th>Type</th>
+
+<th>Message</th>
+
+<th>Severity</th>
+
+</tr>
+
+</thead>
+
+<tbody id="alert-history">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<script>
+
+async function loadDashboard() {
+
+    try {
+
+        const statusResponse =
+            await fetch("/api/status");
+
+        const data =
+            await statusResponse.json();
+
+
+        // -----------------------------
+        // Metrics
+        // -----------------------------
+
+        document.getElementById("cpu")
+            .textContent =
+            data.metrics.cpu_percent + "%";
+
+        document.getElementById("memory")
+            .textContent =
+            data.metrics.memory_percent + "%";
+
+        document.getElementById("disk")
+            .textContent =
+            data.metrics.disk_percent + "%";
+
+
+        // -----------------------------
+        // Network
+        // -----------------------------
+
+        const network =
+            document.getElementById("network");
+
+        network.textContent =
+            data.network.reachable
+                ? "ONLINE"
+                : "OFFLINE";
+
+        network.className =
+            "value " +
+            (
+                data.network.reachable
+                    ? "ok"
+                    : "bad"
+            );
+
+
+        // -----------------------------
+        // System Information
+        // -----------------------------
+
+        document.getElementById("system")
+            .textContent =
+            data.metrics.hostname +
+            " | " +
+            data.metrics.os;
+
+
+        document.getElementById("updated")
+            .textContent =
+            "Last updated: " +
+            data.metrics.timestamp;
+
+
+        // -----------------------------
+        // Log Analysis
+        // -----------------------------
+
+        document.getElementById("logs")
+            .textContent =
+            "Lines: " +
+            data.logs.total_lines +
+            " | Errors: " +
+            data.logs.errors +
+            " | Warnings: " +
+            data.logs.warnings +
+            " | Critical: " +
+            data.logs.critical;
+
+
+        document.getElementById("issues")
+            .textContent =
+            data.logs.recent_issues.length
+                ? data.logs.recent_issues.join("\n")
+                : "No recent issues detected.";
+
+
+        // -----------------------------
+        // Current Alerts
+        // -----------------------------
+
+        displayAlerts(data.alerts);
+
+
+        // -----------------------------
+        // History
+        // -----------------------------
+
+        await loadHistory();
+
+
+        // -----------------------------
+        // Alert History
+        // -----------------------------
+
+        await loadAlertHistory();
+
+    }
+
+    catch(error) {
+
+        console.error(
+            "Dashboard error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* --------------------------------
+   Display Active Alerts
+-------------------------------- */
+
+function displayAlerts(alerts) {
+
+    const container =
+        document.getElementById("alerts");
+
+
+    if (!alerts || alerts.length === 0) {
+
+        container.innerHTML =
+            `
+            <div class="no-alert">
+                ✓ No active alerts
+            </div>
+            `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        alerts.map(alert =>
+
+            `
+            <div class="alert">
+
+                <strong>
+                    ${alert.severity}
+                </strong>
+
+                -
+                ${alert.message}
+
+            </div>
+            `
+
+        ).join("");
+
+}
+
+
+/* --------------------------------
+   Generate Test Alerts
+-------------------------------- */
+
+async function generateTestAlerts() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/test-alerts",
+                {
+                    method: "POST"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to generate test alerts"
+            );
+
+        }
+
+
+        console.log(
+            "Test alerts:",
+            data
+        );
+
+
+        // Show the generated alerts immediately
+
+        displayAlerts(
+            data.alerts
+        );
+
+
+        // Refresh alert history
+
+        await loadAlertHistory();
+
+
+        alert(
+            "🚨 Test alerts generated successfully!"
+        );
+
+    }
+
+    catch(error) {
+
+        console.error(
+            "Test alert error:",
+            error
+        );
+
+        alert(
+            "Failed to generate test alerts"
+        );
+
+    }
+
+}
+
+
+/* --------------------------------
+   Load Monitoring History
+-------------------------------- */
+
+async function loadHistory() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/history"
+            );
+
+
+        const history =
+            await response.json();
+
+
+        drawChart(history);
+
+    }
+
+    catch(error) {
+
+        console.error(
+            "History error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* --------------------------------
+   Draw Resource Chart
+-------------------------------- */
+
+function drawChart(data) {
+
+    const canvas =
+        document.getElementById("chart");
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    if (data.length < 2) {
+
+        ctx.fillStyle =
+            "#94a3b8";
+
+        ctx.font =
+            "16px Arial";
+
+        ctx.fillText(
+            "Collecting monitoring history...",
+            30,
+            50
+        );
+
+        return;
+    }
+
+
+    const width =
+        canvas.width;
+
+    const height =
+        canvas.height;
+
+    const padding =
+        45;
+
+
+    // Background
+
+    ctx.fillStyle =
+        "#020617";
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    // Grid
+
+    ctx.strokeStyle =
+        "#334155";
+
+    for (
+        let i = 0;
+        i <= 4;
+        i++
+    ) {
+
+        const y =
+            padding +
+            (
+                (height - padding * 2)
+                / 4
+            ) * i;
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            padding,
+            y
+        );
+
+        ctx.lineTo(
+            width - padding,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    function drawLine(
+        field,
+        lineColor
+    ) {
+
+        ctx.strokeStyle =
+            lineColor;
+
+        ctx.lineWidth =
+            2;
+
+        ctx.beginPath();
+
+
+        data.forEach(
+            (item, index) => {
+
+                const x =
+                    padding +
+                    (
+                        index /
+                        (data.length - 1)
+                    ) *
+                    (
+                        width -
+                        padding * 2
+                    );
+
+
+                const value =
+                    item[field];
+
+
+                const y =
+                    height -
+                    padding -
+                    (
+                        value / 100
+                    ) *
+                    (
+                        height -
+                        padding * 2
+                    );
+
+
+                if (index === 0) {
+
+                    ctx.moveTo(
+                        x,
+                        y
+                    );
+
+                }
+
+                else {
+
+                    ctx.lineTo(
+                        x,
+                        y
+                    );
+
+                }
+
+            }
+        );
+
+
+        ctx.stroke();
+
+    }
+
+
+    drawLine(
+        "cpu_percent",
+        "#60a5fa"
+    );
+
+
+    drawLine(
+        "memory_percent",
+        "#4ade80"
+    );
+
+
+    drawLine(
+        "disk_percent",
+        "#facc15"
+    );
+
+
+    // Legend
+
+    ctx.font =
+        "14px Arial";
+
+
+    ctx.fillStyle =
+        "#60a5fa";
+
+    ctx.fillText(
+        "CPU",
+        50,
+        25
+    );
+
+
+    ctx.fillStyle =
+        "#4ade80";
+
+    ctx.fillText(
+        "Memory",
+        110,
+        25
+    );
+
+
+    ctx.fillStyle =
+        "#facc15";
+
+    ctx.fillText(
+        "Disk",
+        190,
+        25
+    );
+
+}
+
+
+/* --------------------------------
+   Load Alert History
+-------------------------------- */
+
+async function loadAlertHistory() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/alerts"
+            );
+
+
+        const alerts =
+            await response.json();
+
+
+        const tbody =
+            document.getElementById(
+                "alert-history"
+            );
+
+
+        if (!alerts || alerts.length === 0) {
+
+            tbody.innerHTML =
+                `
+                <tr>
+                    <td colspan="4">
+                        No alerts recorded
+                    </td>
+                </tr>
+                `;
+
+            return;
+
+        }
+
+
+        tbody.innerHTML =
+            alerts.map(
+                alert =>
+
+                `
+                <tr>
+
+                    <td>
+                        ${alert.timestamp || ""}
+                    </td>
+
+                    <td>
+                        ${alert.alert_type || alert.type || ""}
+                    </td>
+
+                    <td>
+                        ${alert.message || ""}
+                    </td>
+
+                    <td>
+                        ${alert.severity || ""}
+                    </td>
+
+                </tr>
+                `
+
+            ).join("");
+
+    }
+
+    catch(error) {
+
+        console.error(
+            "Alert history error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* --------------------------------
+   Initial Load
+-------------------------------- */
+
+loadDashboard();
+
+
+/* --------------------------------
+   Auto Refresh Every 10 Seconds
+-------------------------------- */
+
+setInterval(
+    loadDashboard,
+    10000
+);
+
+</script>
+
+</body>
+
+</html>

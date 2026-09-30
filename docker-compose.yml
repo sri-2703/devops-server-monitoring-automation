@@ -1,0 +1,10 @@
+services:
+  monitoring-app:
+    build: .
+    container_name: devops-monitor
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+      - ./monitoring.db:/app/monitoring.db
+    restart: unless-stopped

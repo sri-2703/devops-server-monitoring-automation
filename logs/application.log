@@ -1,0 +1,8 @@
+2026-09-30 09:00:01 INFO Application started
+2026-09-30 09:01:12 INFO Health check completed
+2026-09-30 09:02:18 WARNING High memory usage detected
+2026-09-30 09:03:05 INFO Database connection established
+2026-09-30 09:04:20 ERROR Failed login attempt
+2026-09-30 09:05:31 INFO Request processed successfully
+2026-09-30 09:06:44 WARNING Slow network response
+2026-09-30 10:00:00 ERROR Database connection failed
